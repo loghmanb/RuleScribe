@@ -40,17 +40,17 @@ type TokenType =
   | 'EOF';
 
 // Define a token
-interface Token {
+export interface Token {
   type: TokenType;
   value: string | number | boolean | null;
 }
 
-interface ILexer {
+export interface ILexer {
   reset(): void;
   getNextToken(): Token;
 }
 
-class CompiledLexer implements ILexer {
+export class CompiledLexer implements ILexer {
   private idx: number = -1;
   constructor(private readonly tokens: Token[]){
   }
@@ -73,12 +73,12 @@ const RESERVED_KEYWORD = new Set(['If', 'Then', 'Else', 'End', 'Function', 'Do',
 const KEYWORD_WITH_END = new Set(['IF', 'FOR', 'WHILE', 'RULE', 'FUNCTION']);
 
 // Define the lexer
-class Lexer implements ILexer {
+export class Lexer implements ILexer {
   private text: string;
   private pos: number = 0;
   private currentChar: string | null = null;
 
-  constructor(private readonly symbolTable: SymbolTable, text: string) {
+  constructor(text: string, private readonly symbolTable: SymbolTable = new SymbolTable()) {
     this.text = text;
     this.currentChar = text[this.pos];
   }
@@ -302,14 +302,14 @@ enum FunctionType {
   UNDEFINED,
 }
 
-type FunctionDefinition<T extends Token[] | Function> = {
+export type FunctionDefinition<T extends Token[] | Function> = {
   parameters?: string[];
   body: T;
   thisArg?: any;
 }
 
 // Define symbol table to store variables and functions
-class SymbolTable {
+export class SymbolTable {
   private funcs: Map<string, FunctionDefinition<Token[]>> = new Map();
 
   constructor(
@@ -367,7 +367,7 @@ class SymbolTable {
 }
 
 // Define the parser
-class Parser {
+export class Parser {
   private currentToken: Token | null = null;
 
   constructor(private readonly lexer: ILexer) {
@@ -677,7 +677,7 @@ class Parser {
     this.eat('END');
   }
 
-  public async parse(symbolTable: SymbolTable): Promise<void> {
+  public async parse(symbolTable?: SymbolTable): Promise<void> {
     while (this.currentToken?.type !== 'EOF') {
       await this.statement(symbolTable);
     }
@@ -688,84 +688,3 @@ class Parser {
     this.currentToken = this.lexer.getNextToken();
   }
 }
-
-// Test
-(async () => {
-  const text = `
-  k = 0
-  While k<10 Do
-    k = k + 2
-  End
-  For i From 1 To 10 Step 2 Do
-    If k>10 Then
-      log(k)
-    End
-    k = k + 1
-  End
-
-  x = 10.5
-  y = 20
-  z = (x + y) / 2
-  If (z > 10) Then
-    If Not (x < 10) Then
-      z = z * 2
-    End
-  Else
-      z = z / 2
-  End
-  method(myClass.field)
-  method2@myClass()
-  Function print(x) Do
-    If (x * 2 > 10) Then
-      Return -1
-    Else
-      Return x + 4
-    End
-    y = 1
-  End
-  
-  w = print(z)
-  log(w)
-  method(w)
-`;
-/*
-  Rule "My First Rule"
-  When order.total > 10
-  Then
-    applyDicount@Order(10)
-  End
-*/
-
-  class MyClass {
-    public field: string = '';
-    public async method(param: number){
-      console.log(`field: ${this.field}, param: ${param}`);
-    }
-    public async method2() {
-      console.log('hello from method2');
-    }
-  }
-  const myClass = new MyClass();
-  myClass.field = 'my-field';
-  const builtinFuncs = new Map<string, FunctionDefinition<Function>>();
-  builtinFuncs.set('log', {
-    parameters: ['message'],
-    body: console.log,
-    thisArg: null,
-  });
-  builtinFuncs.set('method', {
-    parameters: ['param'],
-    body: myClass.method,
-    thisArg: myClass,
-  });
-  const symbols: Map<string, any> = new Map();
-  symbols.set('myClass', myClass);
-  const symbolTable = new SymbolTable(builtinFuncs, symbols);
-  const parser = new Parser(new Lexer(symbolTable, text));
-  try {
-  await parser.parse(symbolTable);
-  } catch (e) {
-    console.log(e);
-  }
-  console.log(symbolTable);
-})();
