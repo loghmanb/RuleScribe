@@ -516,24 +516,20 @@ class Parser {
     this.eat('IF');
     const condition = await this.expr(symbolTable);
     this.eat('THEN');
-    if (condition) {
-      while (this.currentToken?.type !== 'ELSE' && this.currentToken?.type !== 'END') {
+    while (this.currentToken?.type !== 'ELSE' && this.currentToken?.type !== 'END') {
+      if (condition) {
         await this.statement(symbolTable);
-      }
-    } else {
-      while (this.currentToken?.type !== 'ELSE' && this.currentToken?.type !== 'END') {
-        this.eat(this.currentToken?.type as any); //'NEWLINE');
+      } else {
+        this.eat(this.currentToken?.type as any);
       }
     }
     if (this.currentToken?.type === 'ELSE') {
       this.eat('ELSE');
-      if (!condition) {
-        while ((this.currentToken?.type as any) !== 'END') {
+      while ((this.currentToken?.type as any) !== 'END') {
+        if (!condition) {
           await this.statement(symbolTable);
-        }
-      } else {
-        while ((this.currentToken?.type as any) !== 'END') {
-          this.eat(this.currentToken?.type); //'NEWLINE');
+        } else {
+          this.eat(this.currentToken?.type);
         }
       }
     }
@@ -547,8 +543,8 @@ class Parser {
     this.eat('FROM');
     symbolTable.define(name, await this.expr(symbolTable));
     this.eat('TO');
-    const end = `@${name}_end`;
-    symbolTable.define(end, await this.expr(symbolTable));
+    const to = `@${name}_end`;
+    symbolTable.define(to, await this.expr(symbolTable));
     const step = `@${name}_step`;
     if (this.currentToken?.type==='STEP') {
       this.eat('STEP');
@@ -558,13 +554,22 @@ class Parser {
     }
     this.eat('DO');
     const body: Token[] = [];
-    while ((this.currentToken?.type as any) !== 'END') {
+    let end = 1
+    if (KEYWORD_WITH_END.has(this.currentToken?.type as any)) {
+      end += 1;
+    }
+    while ((end>=1) || (this.currentToken?.type as any) !== 'END') {
       body.push(this.currentToken!);
       this.eat(this.currentToken!.type);
+      if (this.currentToken?.type === 'END') {
+        end -= 1;
+      } else if (KEYWORD_WITH_END.has(this.currentToken?.type as any)) {
+        end += 1;
+      }
     }
     this.eat('END');
     const parser = new Parser(new CompiledLexer(body));
-    while (symbolTable.lookup(name) <= symbolTable.lookup(end)) {
+    while (symbolTable.lookup(name) <= symbolTable.lookup(to)) {
       await parser.parse(symbolTable);
       parser.reset();
       symbolTable.define(name, symbolTable.lookup(name)+symbolTable.lookup(step));
@@ -573,17 +578,36 @@ class Parser {
 
   private async whileLoop(symbolTable: SymbolTable): Promise<void> {
     this.eat('WHILE');
-    const condition = await this.expr(symbolTable);
+    const condition: Token[] = [];
+    while (this.currentToken?.type! !=='DO') {
+      condition.push(this.currentToken!);
+      this.eat(this.currentToken?.type!);
+    }
     this.eat('DO');
-    while (condition) {
-      while (this.currentToken?.type !== 'END') {
-        this.statement(symbolTable);
+    const body: Token[] = [];
+    let end = 1;
+    if (KEYWORD_WITH_END.has(this.currentToken?.type!)) {
+      end += 1;
+    }
+    while ((end>=1) && (this.currentToken?.type as string !== 'END')) {
+      body.push(this.currentToken!);
+      this.eat(this.currentToken?.type!);
+      if (KEYWORD_WITH_END.has(this.currentToken?.type!)) {
+        end += 1;
+      } else if (this.currentToken?.type as string === 'END') {
+        end -= 1;
       }
-      this.eat('END');
-      // Check condition again for loop continuation
-      if (condition) {
-        this.eat('WHILE');
-      }
+    }
+    this.eat('END');
+
+    const parser = new Parser(new CompiledLexer(body));
+    const condParser = new Parser(new CompiledLexer(condition));
+    let cond = await condParser.expr(symbolTable);
+    while (cond) {
+      await parser.parse(symbolTable);
+      parser.reset();
+      condParser.reset();
+      cond = await condParser.expr(symbolTable);
     }
   }
 
@@ -668,12 +692,29 @@ class Parser {
 // Test
 (async () => {
   const text = `
-  method(myClass.field)
-  method2@myClass()
   k = 0
+  While k<10 Do
+    k = k + 2
+  End
   For i From 1 To 10 Step 2 Do
+    If k>10 Then
+      log(k)
+    End
     k = k + 1
   End
+
+  x = 10.5
+  y = 20
+  z = (x + y) / 2
+  If (z > 10) Then
+    If Not (x < 10) Then
+      z = z * 2
+    End
+  Else
+      z = z / 2
+  End
+  method(myClass.field)
+  method2@myClass()
   Function print(x) Do
     If (x * 2 > 10) Then
       Return -1
@@ -683,14 +724,6 @@ class Parser {
     y = 1
   End
   
-  x = 10.5
-  y = 20
-  z = (x + y) / 2
-  If (z > 10) And Not (x < 10) Then
-      z = z * 2
-  Else
-      z = z / 2
-  End
   w = print(z)
   log(w)
   method(w)
