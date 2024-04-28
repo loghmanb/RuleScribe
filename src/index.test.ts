@@ -52,7 +52,20 @@ End`;
     expect(symbolTable.lookup('k')).toEqual(500);
   });
 
-  
+  it("should call instance method", async () => {
+    class TestClass {
+      method(x: number) {
+        return x * 2;
+      }
+    }
+    const text = `k = method@testClass(15)`;
+    const symbols: Map<string, any> = new Map();
+    symbols.set('testClass', new TestClass());
+    const symbolTable = new SymbolTable(new Map(), symbols);
+    const parser = new Parser(new Lexer(text, symbolTable));
+    await parser.parse(symbolTable);
+    expect(symbolTable.lookup('k')).toEqual(30);
+  });
 /*
   it("should", async () => {
     const text = `
