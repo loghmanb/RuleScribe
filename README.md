@@ -1,0 +1,2 @@
+# RuleScribe
+Typescript rule engine
