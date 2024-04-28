@@ -1,0 +1,28 @@
+{
+  "name": "rulescribe",
+  "version": "0.1.0",
+  "description": "Typescript rule engine",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/loghmanb/rulescribe.git"
+  },
+  "keywords": [
+    "Rule",
+    "Engine",
+    "Typescript",
+    "BRMS"
+  ],
+  "author": "Loghman Barari",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/loghmanb/rulescribe/issues"
+  },
+  "homepage": "https://github.com/loghmanb/rulescribe#readme",
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
