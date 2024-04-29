@@ -1,5 +1,5 @@
 import EngineScope from "./scope";
-import { FunctionType, ILexer, Token } from "./types";
+import { FunctionType, ILexer, Token } from "./interfaces";
 
 const RESERVED_KEYWORD = new Set(['If', 'Then', 'Else', 'End', 'Function', 'Do', 'Return', 'While', 'For', 'From', 'To', 'Step', 'Rule', 'When']);
 

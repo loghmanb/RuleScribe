@@ -1,9 +1,3 @@
-import { Lexer } from './lexer';
-import Parser from './engine';
-import EngineScop from './scope';
-
-module.exports = {
-    Parser,
-    Lexer,
-    EngineScop
-};
+export { Lexer } from './lexer';
+export { default as Engine }  from './engine';
+export { default as EngineScope } from './scope';

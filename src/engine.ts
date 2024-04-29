@@ -1,6 +1,6 @@
 import { CompiledLexer } from "./lexer";
 import EngineScope from "./scope";
-import { FunctionDefinition, FunctionType, ILexer, Token, TokenType } from "./types";
+import { FunctionDefinition, FunctionType, ILexer, Token, TokenType } from "./interfaces";
 
 const KEYWORD_WITH_END = new Set(['IF', 'FOR', 'WHILE', 'RULE', 'FUNCTION']);
 

@@ -1,4 +1,4 @@
-import { FunctionDefinition, FunctionType, RuleDefenition, Token } from "./types";
+import { FunctionDefinition, FunctionType, RuleDefenition, Token } from "./interfaces";
 
 // Define symbol table to store variables and functions
 export default class EngineScope {
