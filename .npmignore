@@ -1,0 +1,5 @@
+.github/
+src/
+dist/**/*.test.js
+dist/**/*.test.js.map
+node_modules

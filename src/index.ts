@@ -677,7 +677,7 @@ export class Parser {
     this.eat('END');
   }
 
-  public async parse(symbolTable?: SymbolTable): Promise<void> {
+  public async parse(symbolTable: SymbolTable): Promise<void> {
     while (this.currentToken?.type !== 'EOF') {
       await this.statement(symbolTable);
     }
