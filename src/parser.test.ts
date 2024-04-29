@@ -134,6 +134,27 @@ z = Not (x > y)
     await parser.parse(symbolTable);
     expect(symbolTable.lookup('z')).toEqual(false);
   });
+
+  it('should define and call function', async () => {
+    const text = `
+    Function print(x) Do
+      If (x * 2 > 10) Then
+        Return -1
+      Else
+        Return x + 4
+      End
+      y = 1
+    End
+    y = print(10)
+    z = print(2)
+    `;
+    const symbols: Map<string, any> = new Map();
+    const symbolTable = new SymbolTable(new Map(), symbols);
+    const parser = new Parser(new Lexer(text, symbolTable));
+    await parser.parse(symbolTable);
+    expect(symbolTable.lookup('y')).toEqual(-1);
+    expect(symbolTable.lookup('z')).toEqual(6);
+  });
   
 /*
   it("should", async () => {
@@ -161,14 +182,7 @@ z = Not (x > y)
     End
     method(myClass.field)
     method2@myClass()
-    Function print(x) Do
-      If (x * 2 > 10) Then
-        Return -1
-      Else
-        Return x + 4
-      End
-      y = 1
-    End
+    
     
     w = print(z)
     log(w)

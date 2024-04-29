@@ -1,6 +1,6 @@
 import SymbolTable, { FunctionType, Token } from "./symboltable";
 
-const RESERVED_KEYWORD = new Set(['If', 'Then', 'Else', 'End', 'Function', 'Do', 'Return', 'While', 'For', 'From', 'To', 'Step']);
+const RESERVED_KEYWORD = new Set(['If', 'Then', 'Else', 'End', 'Function', 'Do', 'Return', 'While', 'For', 'From', 'To', 'Step', 'Rule', 'When']);
 
 export interface ILexer {
   reset(): void;

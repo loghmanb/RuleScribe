@@ -141,6 +141,8 @@ export default class Parser {
       await this.whileLoop(symbolTable);
     } else if (token?.type === 'FOR') {
       await this.forLoop(symbolTable);
+    } else if (token?.type === 'RULE') {
+      await this.ruleDefenition(symbolTable);
     } else if (token?.type === 'FUNCTION') {
       this.functionDefinition(symbolTable);
     } else if (token?.type === 'CALL_FUNCTION') {
@@ -193,22 +195,7 @@ export default class Parser {
     } else {
       symbolTable.define(step, 1);
     }
-    this.eat('DO');
-    const body: Token[] = [];
-    let end = 1
-    if (KEYWORD_WITH_END.has(this.currentToken?.type as any)) {
-      end += 1;
-    }
-    while ((end>=1) || (this.currentToken?.type as any) !== 'END') {
-      body.push(this.currentToken!);
-      this.eat(this.currentToken!.type);
-      if (this.currentToken?.type === 'END') {
-        end -= 1;
-      } else if (KEYWORD_WITH_END.has(this.currentToken?.type as any)) {
-        end += 1;
-      }
-    }
-    this.eat('END');
+    const body: Token[] = this.getBody();
     const parser = new Parser(new CompiledLexer(body));
     while (symbolTable.lookup(name) <= symbolTable.lookup(to)) {
       await parser.parse(symbolTable);
@@ -219,11 +206,30 @@ export default class Parser {
 
   private async whileLoop(symbolTable: SymbolTable): Promise<void> {
     this.eat('WHILE');
+    const condition = this.getCondition('DO');
+    const body = this.getBody();
+
+    const parser = new Parser(new CompiledLexer(body));
+    const condParser = new Parser(new CompiledLexer(condition));
+    let cond = await condParser.expr(symbolTable);
+    while (cond) {
+      await parser.parse(symbolTable);
+      parser.reset();
+      condParser.reset();
+      cond = await condParser.expr(symbolTable);
+    }
+  }
+
+  private getCondition(end: 'DO' | 'THEN'): Token[] {
     const condition: Token[] = [];
-    while (this.currentToken?.type! !=='DO') {
+    while (this.currentToken?.type! !== end) {
       condition.push(this.currentToken!);
       this.eat(this.currentToken?.type!);
     }
+    return condition;
+  }
+
+  private getBody() {
     this.eat('DO');
     const body: Token[] = [];
     let end = 1;
@@ -240,16 +246,7 @@ export default class Parser {
       }
     }
     this.eat('END');
-
-    const parser = new Parser(new CompiledLexer(body));
-    const condParser = new Parser(new CompiledLexer(condition));
-    let cond = await condParser.expr(symbolTable);
-    while (cond) {
-      await parser.parse(symbolTable);
-      parser.reset();
-      condParser.reset();
-      cond = await condParser.expr(symbolTable);
-    }
+    return body;
   }
 
   private async callFunction(symbolTable: SymbolTable): Promise<number | string | boolean | undefined> {
@@ -283,6 +280,16 @@ export default class Parser {
       await parser.parse(funcSymbolTable);
       return funcSymbolTable.lookup('@RETURN_VALUE');
     }
+  }
+
+  private ruleDefenition(symbolTable: SymbolTable): void {
+    this.eat('RULE');
+    const name = this.currentToken?.value as string;
+    this.eat('IDENTIFIER');
+    this.eat('WHEN');
+    const condition = this.getCondition('THEN');
+    const body = this.getBody();
+    symbolTable.addRule(name, { condition, body })
   }
 
   private functionDefinition(symbolTable: SymbolTable): void {

@@ -30,6 +30,8 @@ export type TokenType =
   | 'RPAREN'
   | 'COMMA'
   | 'ASSIGN'
+  | 'RULE'
+  | 'WHEN'
   | 'IF'
   | 'THEN'
   | 'ELSE'
@@ -58,10 +60,16 @@ export type FunctionDefinition<T extends Token[] | Function> = {
     thisArg?: any;
 }
 
+export type RuleDefenition = {
+  condition: Token[];
+  body: Token[];
+}
+
 // Define symbol table to store variables and functions
 export default class SymbolTable {
     private funcs: Map<string, FunctionDefinition<Token[]>> = new Map();
-  
+    private rules: Map<string, RuleDefenition> = new Map();
+
     constructor(
       public readonly builtinFunction: Map<string, FunctionDefinition<CallableFunction>> = new Map(),
       private symbols: Map<string, any> = new Map()) {
@@ -87,6 +95,10 @@ export default class SymbolTable {
       this.funcs.set(name,  { parameters, body });
     }
   
+    public addRule(name: string, rule: RuleDefenition) {
+      this.rules.set(name, rule);
+    }
+
     public functionType(name: string): FunctionType {
       if (this.funcs.has(name)) {
         return FunctionType.USER_DEFINED;
