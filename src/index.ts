@@ -473,10 +473,12 @@ export class Parser {
         result = result != (await this.term(symbolTable) as number);
       } else if (token?.type === 'AND') {
         this.eat('AND');
-        result = result && (await this.term(symbolTable) as number);
+        const other =  await this.expr(symbolTable) as number;
+        result = result && other;
       } else if (token?.type === 'OR') {
         this.eat('OR');
-        result = result || (await this.term(symbolTable) as number);
+        const other = await this.expr(symbolTable);
+        result = result || other;
       }
     }
     return result;
