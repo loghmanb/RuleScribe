@@ -7,4 +7,5 @@ src/
 dist/**/*.test.js
 dist/**/*.test.d.ts
 dist/**/*.test.js.map
-
+dist/example.d.ts
+dist/example.js

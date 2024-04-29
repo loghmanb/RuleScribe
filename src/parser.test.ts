@@ -1,4 +1,6 @@
-import { FunctionDefinition, Lexer, Parser, SymbolTable } from ".";
+import Parser from "./parser";
+import { Lexer } from "./lexer";
+import SymbolTable from "./symboltable";
 
 describe("Parser", () => {
   class TestClass {
