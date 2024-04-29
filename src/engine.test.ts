@@ -1,4 +1,4 @@
-import Parser from "./parser";
+import Engine from "./engine";
 import { Lexer } from "./lexer";
 import SymbolTable from "./symboltable";
 
@@ -19,8 +19,8 @@ While k<10 Do
   k = k + 2
 End`;
     const symbolTable = new SymbolTable();
-    const parser = new Parser(new Lexer(text, symbolTable));
-    await parser.parse(symbolTable);
+    const engine = new Engine(new Lexer(text, symbolTable));
+    await engine.parse(symbolTable);
     expect(symbolTable.lookup('k')).toEqual(10);
   });
 
@@ -31,8 +31,8 @@ End`;
     k = k * i
   End`;
     const symbolTable = new SymbolTable();
-    const parser = new Parser(new Lexer(text, symbolTable));
-    await parser.parse(symbolTable);
+    const engine = new Engine(new Lexer(text, symbolTable));
+    await engine.parse(symbolTable);
     expect(symbolTable.lookup('k')).toEqual(945);
     expect(symbolTable.lookup('i')).toEqual(11);
   });
@@ -44,8 +44,8 @@ End`;
     k = 1000
   End`;
     const symbolTable = new SymbolTable();
-    const parser = new Parser(new Lexer(text, symbolTable));
-    await parser.parse(symbolTable);
+    const engine = new Engine(new Lexer(text, symbolTable));
+    await engine.parse(symbolTable);
     expect(symbolTable.lookup('k')).toEqual(1000);
   });
 
@@ -58,8 +58,8 @@ End`;
     k = 500
   End`;
     const symbolTable = new SymbolTable();
-    const parser = new Parser(new Lexer(text, symbolTable));
-    await parser.parse(symbolTable);
+    const engine = new Engine(new Lexer(text, symbolTable));
+    await engine.parse(symbolTable);
     expect(symbolTable.lookup('k')).toEqual(500);
   });
 
@@ -68,8 +68,8 @@ End`;
     const symbols: Map<string, any> = new Map();
     symbols.set('testClass', new TestClass(2));
     const symbolTable = new SymbolTable(new Map(), symbols);
-    const parser = new Parser(new Lexer(text, symbolTable));
-    await parser.parse(symbolTable);
+    const engine = new Engine(new Lexer(text, symbolTable));
+    await engine.parse(symbolTable);
     expect(symbolTable.lookup('k')).toEqual(30);
   });
 
@@ -78,8 +78,8 @@ End`;
     const symbols: Map<string, any> = new Map();
     symbols.set('testClass', new TestClass(2));
     const symbolTable = new SymbolTable(new Map(), symbols);
-    const parser = new Parser(new Lexer(text, symbolTable));
-    await parser.parse(symbolTable);
+    const engine = new Engine(new Lexer(text, symbolTable));
+    await engine.parse(symbolTable);
     expect(symbolTable.lookup('k')).toEqual(2);
   });
 
@@ -91,8 +91,8 @@ z = (x + y) / (x - y)
 `;
     const symbols: Map<string, any> = new Map();
     const symbolTable = new SymbolTable(new Map(), symbols);
-    const parser = new Parser(new Lexer(text, symbolTable));
-    await parser.parse(symbolTable);
+    const engine = new Engine(new Lexer(text, symbolTable));
+    await engine.parse(symbolTable);
     expect(symbolTable.lookup('z')).toEqual(4);
   });
 
@@ -104,8 +104,8 @@ z = (x > y) And x < y
 `;
     const symbols: Map<string, any> = new Map();
     const symbolTable = new SymbolTable(new Map(), symbols);
-    const parser = new Parser(new Lexer(text, symbolTable));
-    await parser.parse(symbolTable);
+    const engine = new Engine(new Lexer(text, symbolTable));
+    await engine.parse(symbolTable);
     expect(symbolTable.lookup('z')).toEqual(false);
   });  
 
@@ -117,8 +117,8 @@ z = (x > y) Or x < y
 `;
     const symbols: Map<string, any> = new Map();
     const symbolTable = new SymbolTable(new Map(), symbols);
-    const parser = new Parser(new Lexer(text, symbolTable));
-    await parser.parse(symbolTable);
+    const engine = new Engine(new Lexer(text, symbolTable));
+    await engine.parse(symbolTable);
     expect(symbolTable.lookup('z')).toEqual(true);
   });
 
@@ -130,8 +130,8 @@ z = Not (x > y)
 `;
     const symbols: Map<string, any> = new Map();
     const symbolTable = new SymbolTable(new Map(), symbols);
-    const parser = new Parser(new Lexer(text, symbolTable));
-    await parser.parse(symbolTable);
+    const engine = new Engine(new Lexer(text, symbolTable));
+    await engine.parse(symbolTable);
     expect(symbolTable.lookup('z')).toEqual(false);
   });
 
@@ -150,8 +150,8 @@ z = Not (x > y)
     `;
     const symbols: Map<string, any> = new Map();
     const symbolTable = new SymbolTable(new Map(), symbols);
-    const parser = new Parser(new Lexer(text, symbolTable));
-    await parser.parse(symbolTable);
+    const engine = new Engine(new Lexer(text, symbolTable));
+    await engine.parse(symbolTable);
     expect(symbolTable.lookup('y')).toEqual(-1);
     expect(symbolTable.lookup('z')).toEqual(6);
   });

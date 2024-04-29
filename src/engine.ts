@@ -6,7 +6,7 @@ const KEYWORD_WITH_END = new Set(['IF', 'FOR', 'WHILE', 'RULE', 'FUNCTION']);
 
 
 // Define the parser
-export default class Parser {
+export default class Engine {
   private currentToken: Token | null = null;
 
   constructor(private readonly lexer: ILexer) {
@@ -195,11 +195,11 @@ export default class Parser {
     } else {
       symbolTable.define(step, 1);
     }
-    const body: Token[] = this.getBody();
-    const parser = new Parser(new CompiledLexer(body));
+    const body: Token[] = this.getBody('DO');
+    const engine = new Engine(new CompiledLexer(body));
     while (symbolTable.lookup(name) <= symbolTable.lookup(to)) {
-      await parser.parse(symbolTable);
-      parser.reset();
+      await engine.parse(symbolTable);
+      engine.reset();
       symbolTable.define(name, symbolTable.lookup(name)+symbolTable.lookup(step));
     }
   }
@@ -207,14 +207,14 @@ export default class Parser {
   private async whileLoop(symbolTable: SymbolTable): Promise<void> {
     this.eat('WHILE');
     const condition = this.getCondition('DO');
-    const body = this.getBody();
+    const body = this.getBody('DO');
 
-    const parser = new Parser(new CompiledLexer(body));
-    const condParser = new Parser(new CompiledLexer(condition));
+    const engine = new Engine(new CompiledLexer(body));
+    const condParser = new Engine(new CompiledLexer(condition));
     let cond = await condParser.expr(symbolTable);
     while (cond) {
-      await parser.parse(symbolTable);
-      parser.reset();
+      await engine.parse(symbolTable);
+      engine.reset();
       condParser.reset();
       cond = await condParser.expr(symbolTable);
     }
@@ -229,8 +229,8 @@ export default class Parser {
     return condition;
   }
 
-  private getBody() {
-    this.eat('DO');
+  private getBody(start: 'DO' | 'THEN') {
+    this.eat(start);
     const body: Token[] = [];
     let end = 1;
     if (KEYWORD_WITH_END.has(this.currentToken?.type!)) {
@@ -276,8 +276,8 @@ export default class Parser {
     if (funcType === FunctionType.BUILTIN || funcType === FunctionType.CLASS_METHOD) {
       return await (func as FunctionDefinition<Function>).body.apply(func.thisArg, args);
     } else {
-      const parser = new Parser(new CompiledLexer((func as FunctionDefinition<Token[]>).body));
-      await parser.parse(funcSymbolTable);
+      const engine = new Engine(new CompiledLexer((func as FunctionDefinition<Token[]>).body));
+      await engine.parse(funcSymbolTable);
       return funcSymbolTable.lookup('@RETURN_VALUE');
     }
   }
@@ -285,10 +285,10 @@ export default class Parser {
   private ruleDefenition(symbolTable: SymbolTable): void {
     this.eat('RULE');
     const name = this.currentToken?.value as string;
-    this.eat('IDENTIFIER');
+    this.eat('STRING');
     this.eat('WHEN');
     const condition = this.getCondition('THEN');
-    const body = this.getBody();
+    const body = this.getBody('THEN');
     symbolTable.addRule(name, { condition, body })
   }
 
@@ -306,7 +306,7 @@ export default class Parser {
       }
     }
     this.eat('RPAREN');
-    const body = this.getBody();
+    const body = this.getBody('DO');
     symbolTable.declare(name, parameters, body);
   }
 
