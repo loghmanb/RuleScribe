@@ -1,9 +1,8 @@
-import { CompiledLexer, ILexer } from "./lexer";
-import SymbolTable, { FunctionDefinition, FunctionType, Token, TokenType } from "./symboltable";
-
+import { CompiledLexer } from "./lexer";
+import EngineScope from "./scope";
+import { FunctionDefinition, FunctionType, ILexer, Token, TokenType } from "./types";
 
 const KEYWORD_WITH_END = new Set(['IF', 'FOR', 'WHILE', 'RULE', 'FUNCTION']);
-
 
 // Define the parser
 export default class Engine {
@@ -22,10 +21,10 @@ export default class Engine {
     }
   }
 
-  private async factor(symbolTable: SymbolTable): Promise<number | string | boolean> {
+  private async factor(engineScope: EngineScope): Promise<number | string | boolean> {
     const token = this.currentToken;
     if (token?.type === 'CALL_FUNCTION') {
-      const result = await this.callFunction(symbolTable);
+      const result = await this.callFunction(engineScope);
       return (result === undefined) ? false: result;
     } else if (token?.type === 'NUMBER' || token?.type === 'FLOAT' || token?.type === 'BOOLEAN' || token?.type === 'STRING') {
       this.eat(token.type);
@@ -33,46 +32,46 @@ export default class Engine {
     } else if (token?.type === 'IDENTIFIER') {
       const name = token.value as string;
       this.eat('IDENTIFIER');
-      const value = symbolTable.lookup(name);
+      const value = engineScope.lookup(name);
       if (value === undefined) {
         throw new Error(`Variable '${name}' is not defined`);
       }
       return value;
     } else if (token?.type === 'LPAREN') {
       this.eat('LPAREN');
-      const result = await this.expr(symbolTable);
+      const result = await this.expr(engineScope);
       this.eat('RPAREN');
       return result;
     } else if (token?.type === 'MINUS') {
       this.eat('MINUS');
-      return - await this.factor(symbolTable);
+      return - await this.factor(engineScope);
     } else if (token?.type === 'NOT') {
       this.eat('NOT');
-      return ! await this.factor(symbolTable);
+      return ! await this.factor(engineScope);
     }
     throw new Error(`Unexpected token: ${token?.type}`);
   }
 
-  private async term(symbolTable: SymbolTable): Promise<number> {
-    let result = await this.factor(symbolTable) as number;
+  private async term(engineScop: EngineScope): Promise<number> {
+    let result = await this.factor(engineScop) as number;
     while (this.currentToken?.type === 'MULTIPLY' || this.currentToken?.type === 'DIVIDE' || this.currentToken?.type === 'MODULO') {
       const token = this.currentToken;
       if (token?.type === 'MULTIPLY') {
         this.eat('MULTIPLY');
-        result *= await this.factor(symbolTable) as number;
+        result *= await this.factor(engineScop) as number;
       } else if (token?.type === 'DIVIDE') {
         this.eat('DIVIDE');
-        result /= await this.factor(symbolTable) as number;
+        result /= await this.factor(engineScop) as number;
       } else if (token?.type === 'MODULO') {
         this.eat('MODULO');
-        result %= await this.factor(symbolTable) as number;
+        result %= await this.factor(engineScop) as number;
       }
     }
     return result;
   }
 
-  private async expr(symbolTable: SymbolTable): Promise<number | string | boolean> {
-    let result: string | boolean | number = await this.term(symbolTable) as number;
+  private async expr(engineScop: EngineScope): Promise<number | string | boolean> {
+    let result: string | boolean | number = await this.term(engineScop) as number;
     while (
       this.currentToken?.type === 'PLUS' ||
       this.currentToken?.type === 'MINUS' ||
@@ -88,80 +87,80 @@ export default class Engine {
       const token = this.currentToken;
       if (token?.type === 'PLUS') {
         this.eat('PLUS');
-        result = (result as number) + await this.term(symbolTable) as number;
+        result = (result as number) + await this.term(engineScop) as number;
       } else if (token?.type === 'MINUS') {
         this.eat('MINUS');
-        result = (result as number) - await this.term(symbolTable) as number;
+        result = (result as number) - await this.term(engineScop) as number;
       } else if (token?.type === 'LESS_THAN') {
         this.eat('LESS_THAN');
-        result = (result as number) < (await this.term(symbolTable) as number);
+        result = (result as number) < (await this.term(engineScop) as number);
       } else if (token?.type === 'LESS_THAN_OR_EQUAL') {
         this.eat('LESS_THAN_OR_EQUAL');
-        result = (result as number) <= (await this.term(symbolTable) as number);
+        result = (result as number) <= (await this.term(engineScop) as number);
       } else if (token?.type === 'GREATER_THAN') {
         this.eat('GREATER_THAN');
-        result = (result as number) > (await this.expr(symbolTable) as number);
+        result = (result as number) > (await this.expr(engineScop) as number);
       } else if (token?.type === 'GREATER_THAN_OR_EQUAL') {
         this.eat('GREATER_THAN_OR_EQUAL');
-        result = (result as number) >= (await this.expr(symbolTable) as number);
+        result = (result as number) >= (await this.expr(engineScop) as number);
       } else if (token?.type === 'EQUALS') {
         this.eat('EQUALS');
-        result = result === await this.expr(symbolTable);
+        result = result === await this.expr(engineScop);
       } else if (token?.type === 'NOT_EQUALS') {
         this.eat('NOT_EQUALS');
-        result = result != await this.expr(symbolTable);
+        result = result != await this.expr(engineScop);
       } else if (token?.type === 'AND') {
         this.eat('AND');
-        const other =  await this.expr(symbolTable);
+        const other =  await this.expr(engineScop);
         result = result && other;
       } else if (token?.type === 'OR') {
         this.eat('OR');
-        const other = await this.expr(symbolTable);
+        const other = await this.expr(engineScop);
         result = result || other;
       }
     }
     return result;
   }
 
-  private async assignment(symbolTable: SymbolTable): Promise<void> {
+  private async assignment(engineScope: EngineScope): Promise<void> {
     const name = this.currentToken?.value as string;
     this.eat('IDENTIFIER');
     this.eat('ASSIGN');
-    const value = await this.expr(symbolTable);
-    symbolTable.define(name, value);
+    const value = await this.expr(engineScope);
+    engineScope.define(name, value);
   }
 
-  private async statement(symbolTable: SymbolTable): Promise<void> {
+  private async statement(engineScope: EngineScope): Promise<void> {
     const token = this.currentToken;
     if (token?.type === 'IDENTIFIER') {
-      await this.assignment(symbolTable);
+      await this.assignment(engineScope);
     } else if (token?.type === 'IF') {
-      await this.ifStatement(symbolTable);
+      await this.ifStatement(engineScope);
     } else if (token?.type === 'WHILE') {
-      await this.whileLoop(symbolTable);
+      await this.whileLoop(engineScope);
     } else if (token?.type === 'FOR') {
-      await this.forLoop(symbolTable);
+      await this.forLoop(engineScope);
     } else if (token?.type === 'RULE') {
-      await this.ruleDefenition(symbolTable);
+      await this.ruleDefenition(engineScope);
     } else if (token?.type === 'FUNCTION') {
-      this.functionDefinition(symbolTable);
+      this.functionDefinition(engineScope);
     } else if (token?.type === 'CALL_FUNCTION') {
-      await this.callFunction(symbolTable);
+      await this.callFunction(engineScope);
     } else if (token?.type === 'RETURN') {
       this.eat('RETURN');
-      symbolTable.define('@RETURN_VALUE', await this.expr(symbolTable));
+      engineScope.define('@RETURN_VALUE', await this.expr(engineScope));
     } else {
       throw new Error(`Unexpected token: ${token?.type}`);
     }
   }
 
-  private async ifStatement(symbolTable: SymbolTable): Promise<void> {
+  private async ifStatement(engineScop: EngineScope): Promise<void> {
     this.eat('IF');
-    const condition = await this.expr(symbolTable);
+    const condition = await this.expr(engineScop);
     this.eat('THEN');
     while (this.currentToken?.type !== 'ELSE' && this.currentToken?.type !== 'END') {
       if (condition) {
-        await this.statement(symbolTable);
+        await this.statement(engineScop);
       } else {
         this.eat(this.currentToken?.type as any);
       }
@@ -170,7 +169,7 @@ export default class Engine {
       this.eat('ELSE');
       while ((this.currentToken?.type as any) !== 'END') {
         if (!condition) {
-          await this.statement(symbolTable);
+          await this.statement(engineScop);
         } else {
           this.eat(this.currentToken?.type);
         }
@@ -179,44 +178,44 @@ export default class Engine {
     this.eat('END');
   }
 
-  private async forLoop(symbolTable: SymbolTable): Promise<void> {
+  private async forLoop(engineScope: EngineScope): Promise<void> {
     this.eat('FOR');
     const name = this.currentToken?.value as string;
     this.eat('IDENTIFIER');
     this.eat('FROM');
-    symbolTable.define(name, await this.expr(symbolTable));
+    engineScope.define(name, await this.expr(engineScope));
     this.eat('TO');
     const to = `@${name}_end`;
-    symbolTable.define(to, await this.expr(symbolTable));
+    engineScope.define(to, await this.expr(engineScope));
     const step = `@${name}_step`;
     if (this.currentToken?.type==='STEP') {
       this.eat('STEP');
-      symbolTable.define(step, await this.expr(symbolTable));
+      engineScope.define(step, await this.expr(engineScope));
     } else {
-      symbolTable.define(step, 1);
+      engineScope.define(step, 1);
     }
     const body: Token[] = this.getBody('DO');
     const engine = new Engine(new CompiledLexer(body));
-    while (symbolTable.lookup(name) <= symbolTable.lookup(to)) {
-      await engine.parse(symbolTable);
+    while (engineScope.lookup(name) <= engineScope.lookup(to)) {
+      await engine.parse(engineScope);
       engine.reset();
-      symbolTable.define(name, symbolTable.lookup(name)+symbolTable.lookup(step));
+      engineScope.define(name, engineScope.lookup(name)+engineScope.lookup(step));
     }
   }
 
-  private async whileLoop(symbolTable: SymbolTable): Promise<void> {
+  private async whileLoop(engineScop: EngineScope): Promise<void> {
     this.eat('WHILE');
     const condition = this.getCondition('DO');
     const body = this.getBody('DO');
 
     const engine = new Engine(new CompiledLexer(body));
     const condParser = new Engine(new CompiledLexer(condition));
-    let cond = await condParser.expr(symbolTable);
+    let cond = await condParser.expr(engineScop);
     while (cond) {
-      await engine.parse(symbolTable);
+      await engine.parse(engineScop);
       engine.reset();
       condParser.reset();
-      cond = await condParser.expr(symbolTable);
+      cond = await condParser.expr(engineScop);
     }
   }
 
@@ -249,11 +248,11 @@ export default class Engine {
     return body;
   }
 
-  private async callFunction(symbolTable: SymbolTable): Promise<number | string | boolean | undefined> {
-    const funcSymbolTable = new SymbolTable(symbolTable.builtinFunction);
+  private async callFunction(engineScope: EngineScope): Promise<number | string | boolean | undefined> {
+    const funcEngineScope = new EngineScope(engineScope.builtinFunction);
     const funcName = this.currentToken?.value as string;
-    const funcType = symbolTable.functionType(funcName)
-    const func = symbolTable.getFunc(funcName);
+    const funcType = engineScope.functionType(funcName)
+    const func = engineScope.getFunc(funcName);
     if (funcType === FunctionType.UNDEFINED || func === undefined) {
       throw new Error(`'${funcName}' is not declared!`);
     }
@@ -262,9 +261,9 @@ export default class Engine {
     let idx = 0;
     const args: any[] = [];
     while (this.currentToken?.type !== 'RPAREN') {
-      const param = await this.expr(symbolTable);
+      const param = await this.expr(engineScope);
       if (func.parameters !== undefined) {
-        funcSymbolTable.define(func.parameters[idx], param);
+        funcEngineScope.define(func.parameters[idx], param);
       }
       args.push(param);
       if (this.currentToken?.type === 'COMMA') {
@@ -277,22 +276,22 @@ export default class Engine {
       return await (func as FunctionDefinition<Function>).body.apply(func.thisArg, args);
     } else {
       const engine = new Engine(new CompiledLexer((func as FunctionDefinition<Token[]>).body));
-      await engine.parse(funcSymbolTable);
-      return funcSymbolTable.lookup('@RETURN_VALUE');
+      await engine.parse(funcEngineScope);
+      return funcEngineScope.lookup('@RETURN_VALUE');
     }
   }
 
-  private ruleDefenition(symbolTable: SymbolTable): void {
+  private ruleDefenition(engineScope: EngineScope): void {
     this.eat('RULE');
     const name = this.currentToken?.value as string;
     this.eat('STRING');
     this.eat('WHEN');
     const condition = this.getCondition('THEN');
     const body = this.getBody('THEN');
-    symbolTable.addRule(name, { condition, body })
+    engineScope.addRule(name, { condition, body })
   }
 
-  private functionDefinition(symbolTable: SymbolTable): void {
+  private functionDefinition(engineScope: EngineScope): void {
     this.eat('FUNCTION');
     const name = this.currentToken?.value as string;
     this.eat('IDENTIFIER');
@@ -307,13 +306,28 @@ export default class Engine {
     }
     this.eat('RPAREN');
     const body = this.getBody('DO');
-    symbolTable.declare(name, parameters, body);
+    engineScope.declare(name, parameters, body);
   }
 
-  public async parse(symbolTable: SymbolTable): Promise<void> {
+  public async parse(engineScop: EngineScope): Promise<void> {
     while (this.currentToken?.type !== 'EOF') {
-      await this.statement(symbolTable);
+      await this.statement(engineScop);
     }
+  }
+
+  public async fire(engineScope: EngineScope): Promise<void> {
+    const rules = engineScope.getRuleNames().map(async (name) => {
+      const rule = engineScope.getRule(name);
+      if (rule !== undefined) {
+        const condEngine = new Engine(new CompiledLexer(rule.condition));
+        const cond = await condEngine.expr(engineScope) as boolean;
+        if (cond) {
+          const bodyEngine = new Engine(new CompiledLexer(rule.body));
+          await bodyEngine.parse(engineScope);
+        }
+      }
+    });
+    await Promise.all(rules);
   }
 
   public reset(): void {

@@ -1,11 +1,7 @@
-import SymbolTable, { FunctionType, Token } from "./symboltable";
+import EngineScope from "./scope";
+import { FunctionType, ILexer, Token } from "./types";
 
 const RESERVED_KEYWORD = new Set(['If', 'Then', 'Else', 'End', 'Function', 'Do', 'Return', 'While', 'For', 'From', 'To', 'Step', 'Rule', 'When']);
-
-export interface ILexer {
-  reset(): void;
-  getNextToken(): Token;
-}
 
 export class CompiledLexer implements ILexer {
   private idx: number = -1;
@@ -31,7 +27,7 @@ export class Lexer implements ILexer {
     private pos: number = 0;
     private currentChar: string | null = null;
   
-    constructor(text: string, private readonly symbolTable: SymbolTable = new SymbolTable()) {
+    constructor(text: string, private readonly engineScope: EngineScope = new EngineScope()) {
       this.text = text;
       this.currentChar = text[this.pos];
     }
@@ -103,8 +99,8 @@ export class Lexer implements ILexer {
         return { type: 'BOOLEAN', value: (result.toLowerCase()==='true')};
       } else if (['And', 'Or', 'Not'].includes(result)) {
         return { type: result.toUpperCase(), value: null } as any;
-      } else if ((this.symbolTable!==null) && 
-          (this.symbolTable.functionType(result) !== FunctionType.UNDEFINED)) {
+      } else if ((this.engineScope!==null) && 
+          (this.engineScope.functionType(result) !== FunctionType.UNDEFINED)) {
         return { type: 'CALL_FUNCTION', value: result };
       }
       return { type: 'IDENTIFIER', value: result };

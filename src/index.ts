@@ -1,9 +1,9 @@
 import { Lexer } from './lexer';
 import Parser from './engine';
-import SymbolTable from './symboltable';
+import EngineScop from './scope';
 
 module.exports = {
     Parser,
     Lexer,
-    SymbolTable
+    EngineScop
 };
