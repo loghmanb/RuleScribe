@@ -1,6 +1,8 @@
 node_modules
 coverage
+.vscode
 .github
+jest.config.ts
 src/
 dist/**/*.test.js
 dist/**/*.test.d.ts

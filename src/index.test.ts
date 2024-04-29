@@ -1,6 +1,15 @@
 import { FunctionDefinition, Lexer, Parser, SymbolTable } from ".";
 
 describe("Parser", () => {
+  class TestClass {
+    constructor(public field: number) {
+    }
+
+    method(x: number) {
+      return x * this.field;
+    }
+  }
+
   it("should parse while-loop", async () => {
     const text = `
 k = 0
@@ -53,19 +62,77 @@ End`;
   });
 
   it("should call instance method", async () => {
-    class TestClass {
-      method(x: number) {
-        return x * 2;
-      }
-    }
     const text = `k = method@testClass(15)`;
     const symbols: Map<string, any> = new Map();
-    symbols.set('testClass', new TestClass());
+    symbols.set('testClass', new TestClass(2));
     const symbolTable = new SymbolTable(new Map(), symbols);
     const parser = new Parser(new Lexer(text, symbolTable));
     await parser.parse(symbolTable);
     expect(symbolTable.lookup('k')).toEqual(30);
   });
+
+  it("should call instance property", async () => {
+    const text = `k = testClass.field`;
+    const symbols: Map<string, any> = new Map();
+    symbols.set('testClass', new TestClass(2));
+    const symbolTable = new SymbolTable(new Map(), symbols);
+    const parser = new Parser(new Lexer(text, symbolTable));
+    await parser.parse(symbolTable);
+    expect(symbolTable.lookup('k')).toEqual(2);
+  });
+
+  it("should calculate mathematical expression", async () => {
+    const text = `
+x = 5
+y = 3
+z = (x + y) / (x - y)
+`;
+    const symbols: Map<string, any> = new Map();
+    const symbolTable = new SymbolTable(new Map(), symbols);
+    const parser = new Parser(new Lexer(text, symbolTable));
+    await parser.parse(symbolTable);
+    expect(symbolTable.lookup('z')).toEqual(4);
+  });
+
+  it("should calculate logical expression - AND operator", async () => {
+    const text = `
+x = 5
+y = 3
+z = (x > y) And x < y
+`;
+    const symbols: Map<string, any> = new Map();
+    const symbolTable = new SymbolTable(new Map(), symbols);
+    const parser = new Parser(new Lexer(text, symbolTable));
+    await parser.parse(symbolTable);
+    expect(symbolTable.lookup('z')).toEqual(false);
+  });  
+
+  it("should calculate logical expression - OR operator", async () => {
+    const text = `
+x = 5
+y = 3
+z = (x > y) Or x < y
+`;
+    const symbols: Map<string, any> = new Map();
+    const symbolTable = new SymbolTable(new Map(), symbols);
+    const parser = new Parser(new Lexer(text, symbolTable));
+    await parser.parse(symbolTable);
+    expect(symbolTable.lookup('z')).toEqual(true);
+  });
+
+  it("should calculate logical expression - NOT operator", async () => {
+    const text = `
+x = 5
+y = 3
+z = Not (x > y)
+`;
+    const symbols: Map<string, any> = new Map();
+    const symbolTable = new SymbolTable(new Map(), symbols);
+    const parser = new Parser(new Lexer(text, symbolTable));
+    await parser.parse(symbolTable);
+    expect(symbolTable.lookup('z')).toEqual(false);
+  });
+  
 /*
   it("should", async () => {
     const text = `
