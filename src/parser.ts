@@ -236,7 +236,7 @@ export default class Parser {
     if (KEYWORD_WITH_END.has(this.currentToken?.type!)) {
       end += 1;
     }
-    while ((end>=1) && (this.currentToken?.type as string !== 'END')) {
+    while ((end>=1) || (this.currentToken?.type as string !== 'END')) {
       body.push(this.currentToken!);
       this.eat(this.currentToken?.type!);
       if (KEYWORD_WITH_END.has(this.currentToken?.type!)) {
@@ -306,23 +306,8 @@ export default class Parser {
       }
     }
     this.eat('RPAREN');
-    this.eat('DO');
-    const body: Token[] = [];
-    let end = 1;
-    if (KEYWORD_WITH_END.has(this.currentToken?.type)) {
-      end += 1;
-    }
-    while ((end >= 1) || (this.currentToken?.type as any) !== 'END') {
-      body.push(this.currentToken);
-      this.eat(this.currentToken?.type);
-      if (KEYWORD_WITH_END.has(this.currentToken?.type)) {
-        end += 1;
-      } else if ((this.currentToken?.type as any)==='END') {
-        end -= 1;
-      }
-    }
+    const body = this.getBody();
     symbolTable.declare(name, parameters, body);
-    this.eat('END');
   }
 
   public async parse(symbolTable: SymbolTable): Promise<void> {
