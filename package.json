@@ -1,6 +1,6 @@
 {
   "name": "rulescribe",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Typescript rule engine",
   "main": "dist/index.js",
   "scripts": {
