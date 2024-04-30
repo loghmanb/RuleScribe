@@ -74,7 +74,7 @@ This code will execute the rule "My First Rule" and send a checkup reminder SMS 
 
 ## Documentation
 
-For more information on how to use RuleScribe, including advanced features and usage examples, refer to the [RuleScribe Wiki](https://github.com/loghmanb/rulescribe/wiki).
+For more information on how to use RuleScribe, including advanced features and usage examples, refer to the [RuleScribe Wiki](https://github.com/loghmanb/rulescribe/wiki). Please first review the [disclaimer](https://github.com/loghmanb/rulescribe/wiki/Disclaimer).
 
 ## Contributing
 
