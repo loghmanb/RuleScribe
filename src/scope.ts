@@ -27,7 +27,7 @@ export default class EngineScope {
     }
   
     public declare(name: string, parameters: string[], body: Token[]) {
-      this.funcs.set(name,  { parameters, body });
+      this.funcs.set(name,  { parameters, func: body });
     }
   
     public addRule(name: string, rule: RuleDefenition) {
@@ -64,7 +64,7 @@ export default class EngineScope {
           thisArg = method;
           method = thisArg[methodPath.pop() as string];
         }
-        return {body: method, thisArg};
+        return {func: method, thisArg};
       }
       return this.funcs.get(name) || this.builtinFunction.get(name);
     }

@@ -281,9 +281,9 @@ export default class Engine {
     }
     this.eat('RPAREN');
     if (funcType === FunctionType.BUILTIN || funcType === FunctionType.CLASS_METHOD) {
-      return await (func as FunctionDefinition<Function>).body.apply(func.thisArg, args);
+      return await (func as FunctionDefinition<Function>).func.apply(func.thisArg, args);
     } else {
-      const engine = new Engine(new CompiledLexer((func as FunctionDefinition<Token[]>).body));
+      const engine = new Engine(new CompiledLexer((func as FunctionDefinition<Token[]>).func));
       await engine.parse(funcEngineScope);
       return funcEngineScope.lookup('@RETURN_VALUE');
     }

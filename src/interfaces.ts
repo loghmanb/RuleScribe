@@ -56,7 +56,7 @@ export interface Token {
 
 export type FunctionDefinition<T extends Token[] | Function> = {
     parameters?: string[];
-    body: T;
+    func: T;
     thisArg?: any;
 }
 
