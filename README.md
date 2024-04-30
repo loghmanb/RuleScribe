@@ -48,6 +48,7 @@ To define a simple rule using RuleScribe, follow these steps:
     Then
         sendCheckupReminderSMS(patient)
     End
+    `
     ```
 
 5. Set up the RuleScribe engine and execute the rule:
@@ -78,6 +79,22 @@ For more information on how to use RuleScribe, including advanced features and u
 ## Contributing
 
 Contributions are welcome! If you encounter any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request.
+
+### Support RuleScribe Development
+
+RuleScribe is an open-source project driven by a community of passionate developers and contributors. Your support can help ensure the continued growth and improvement of RuleScribe, enabling us to deliver innovative features, maintain compatibility with the latest technologies, and provide ongoing support to users.
+
+#### How You Can Help:
+
+1. **Financial Contributions:** Consider making a financial contribution to support RuleScribe development. Your donations help cover expenses such as server hosting, development tools, and community outreach efforts.
+
+2. **Sponsorship Opportunities:** Explore sponsorship opportunities to showcase your organization's commitment to open-source software and innovation. Sponsorship packages may include recognition on our website, social media shoutouts, and other promotional benefits.
+
+3. **Contributions and Feedback:** Get involved in the RuleScribe community by contributing code, reporting bugs, and providing feedback on features and enhancements. Your input helps shape the future direction of the project.
+
+#### Get in Touch:
+
+To learn more about how you can support RuleScribe development or inquire about sponsorship opportunities, please contact us at [loghmanb@gmail.com](mailto:loghmanb@gmail.com). We appreciate your support and look forward to collaborating with you to make RuleScribe even better!
 
 ## License
 

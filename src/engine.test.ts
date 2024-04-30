@@ -179,5 +179,4 @@ z = Not (x > y)
     expect(engineScope.lookup('y')).toEqual(15);
   });
   
-})
-
+}) 
