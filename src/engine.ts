@@ -71,6 +71,18 @@ export default class Engine {
   }
 
   private async expr(engineScop: EngineScope): Promise<number | string | boolean> {
+    const first = await this.expr_math(engineScop);
+    if (this.currentToken?.type === 'AND') {
+      this.eat('AND');
+      return (await this.expr(engineScop)) && first;
+    } else if (this.currentToken?.type === 'OR') {
+      this.eat('OR');
+      return (await this.expr(engineScop)) || first;
+    }
+    return first; 
+  }
+
+  private async expr_math(engineScop: EngineScope): Promise<number | string | boolean> {
     let result: string | boolean | number = await this.term(engineScop) as number;
     while (
       this.currentToken?.type === 'PLUS' ||
@@ -93,30 +105,26 @@ export default class Engine {
         result = (result as number) - await this.term(engineScop) as number;
       } else if (token?.type === 'LESS_THAN') {
         this.eat('LESS_THAN');
-        result = (result as number) < (await this.term(engineScop) as number);
+        return (result as number) < (await this.expr_math(engineScop) as number);
       } else if (token?.type === 'LESS_THAN_OR_EQUAL') {
         this.eat('LESS_THAN_OR_EQUAL');
-        result = (result as number) <= (await this.term(engineScop) as number);
+        return (result as number) <= (await this.expr_math(engineScop) as number);
       } else if (token?.type === 'GREATER_THAN') {
         this.eat('GREATER_THAN');
-        result = (result as number) > (await this.expr(engineScop) as number);
+        return (result as number) > (await this.expr_math(engineScop) as number);
       } else if (token?.type === 'GREATER_THAN_OR_EQUAL') {
         this.eat('GREATER_THAN_OR_EQUAL');
-        result = (result as number) >= (await this.expr(engineScop) as number);
+        return (result as number) >= (await this.expr_math(engineScop) as number);
       } else if (token?.type === 'EQUALS') {
         this.eat('EQUALS');
-        result = result === await this.expr(engineScop);
+        return result === await this.expr_math(engineScop);
       } else if (token?.type === 'NOT_EQUALS') {
         this.eat('NOT_EQUALS');
-        result = result != await this.expr(engineScop);
+        return result != await this.expr_math(engineScop);
       } else if (token?.type === 'AND') {
-        this.eat('AND');
-        const other =  await this.expr(engineScop);
-        result = result && other;
+        return result;
       } else if (token?.type === 'OR') {
-        this.eat('OR');
-        const other = await this.expr(engineScop);
-        result = result || other;
+        return result;
       }
     }
     return result;
