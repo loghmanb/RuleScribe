@@ -1,5 +1,11 @@
-.github/
+node_modules
+coverage
+.vscode
+.github
+jest.config.ts
 src/
 dist/**/*.test.js
+dist/**/*.test.d.ts
 dist/**/*.test.js.map
-node_modules
+dist/example.d.ts
+dist/example.js
