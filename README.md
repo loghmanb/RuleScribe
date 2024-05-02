@@ -5,6 +5,7 @@ RuleScribe is a lightweight and powerful rule engine for JavaScript and TypeScri
 - [Wiki](https://github.com/loghmanb/rulescribe/wiki)
 - [RuleScribe Syntax](https://github.com/loghmanb/rulescribe/wiki/RuleScribe-Syntax)
 - [NPM Package](https://www.npmjs.com/package/rulescribe)
+- [Sample Implemented Use Cases](https://github.com/loghmanb/rulescribe-example)
 - [Source Code](https://github.com/loghmanb/rulescribe)
 - [Disclaimer](https://github.com/loghmanb/rulescribe/wiki/Disclaimer)
 
@@ -16,9 +17,9 @@ You can install RuleScribe via npm:
 npm install rulescribe
 ```
 
-## Usage
+## Tutorials
 
-### Define a Simple Rule
+### Define "Notify patients for routine 90-day checkup appointment scheduling" rule
 
 To define a simple rule using RuleScribe, follow these steps:
 
