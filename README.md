@@ -2,6 +2,12 @@
 
 RuleScribe is a lightweight and powerful rule engine for JavaScript and TypeScript applications. It allows you to define and execute business rules in a declarative manner, enabling agile decision-making and automation of complex logic.
 
+- [Wiki](https://github.com/loghmanb/rulescribe/wiki)
+- [RuleScribe Syntax](https://github.com/loghmanb/rulescribe/wiki/RuleScribe-Syntax)
+- [NPM Package](https://www.npmjs.com/package/rulescribe)
+- [Source Code](https://github.com/loghmanb/rulescribe)
+- [Disclaimer](https://github.com/loghmanb/rulescribe/wiki/Disclaimer)
+
 ## Installation
 
 You can install RuleScribe via npm:
@@ -43,7 +49,7 @@ To define a simple rule using RuleScribe, follow these steps:
 
     ```typescript
     const rule = `
-    Rule "My First Rule"
+    Rule "Notify patients for routine 90-day checkup appointment scheduling."
     When patient.lastVisit > 90
     Then
         sendCheckupReminderSMS(patient)
@@ -96,7 +102,10 @@ RuleScribe is an open-source project driven by a community of passionate develop
 
 To learn more about how you can support RuleScribe development or inquire about sponsorship opportunities, please contact us at [loghmanb@gmail.com](mailto:loghmanb@gmail.com). We appreciate your support and look forward to collaborating with you to make RuleScribe even better!
 
+#### Main collaborator(s)
+
+[Loghman Barari](https://www.linkedin.com/in/loghman-barari-13095724/)
+
 ## License
 
 This project is licensed under the [MIT License](https://github.com/loghmanb/rulescribe/blob/main/LICENSE).
-
